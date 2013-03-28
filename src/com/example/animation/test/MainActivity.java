@@ -8,7 +8,10 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 
 public class MainActivity extends Activity {
@@ -38,6 +41,7 @@ public class MainActivity extends Activity {
         
         TopViewAnimator anim = new TopViewAnimator(500, 500);
         anim.setDuration(1000);
+        anim.setInterpolater(new DecelerateInterpolator());
         anim.start();
     }
 
@@ -64,7 +68,7 @@ public class MainActivity extends Activity {
         public float mTargetY;
         
         public long mDuration = 300;
-        public long mRate = 10;
+        public long mRefreshRate = 10;
         public int mFrame;
         public int mTotalFrame;
         public float mTimeStep;
@@ -73,7 +77,7 @@ public class MainActivity extends Activity {
         
         public Handler mHandler = new Handler();
         
-        public Interpolator mInterpolater = new AccelerateDecelerateInterpolator();
+        public Interpolator mInterpolator = new LinearInterpolator();
         
         public Runnable mRunnable = new Runnable()
         {
@@ -83,7 +87,7 @@ public class MainActivity extends Activity {
                     return;
                 }
                 mTimeProgress += mTimeStep;
-                mDistProgress = mInterpolater.getInterpolation(mTimeProgress);
+                mDistProgress = mInterpolator.getInterpolation(mTimeProgress);
                 mDistX = mDx * mDistProgress + mRemainderX;
                 mDistY = mDy * mDistProgress + mRemainderY;
                 mTargetX = mOriginX + mDistX;
@@ -93,7 +97,7 @@ public class MainActivity extends Activity {
                 mRemainderX = mTargetX - mParams.x;
                 mRemainderY = mTargetY - mParams.y;
                 mWindowManager.updateViewLayout(mButton, mParams);
-                mHandler.postDelayed(mRunnable, mRate);
+                mHandler.postDelayed(mRunnable, mRefreshRate);
             }
         };
         
@@ -105,16 +109,28 @@ public class MainActivity extends Activity {
         
         public void start()
         {
-            mTotalFrame = (int)(mDuration / mRate);
+            mTotalFrame = (int)(mDuration / mRefreshRate);
             mTimeStep = 1 / (float)mTotalFrame;
             mOriginX = mParams.x;
             mOriginY = mParams.y;
-            mHandler.postDelayed(mRunnable, mRate);
+            mHandler.postDelayed(mRunnable, mRefreshRate);
         }
         
         public void setDuration(final long duration)
         {
             mDuration = duration;
+        }
+        
+        public void setInterpolater(final Interpolator interpolator)
+        {
+            if (interpolator != null) {
+                mInterpolator = interpolator;
+            }
+        }
+        
+        public void setRefreshRate(final long rate)
+        {
+            mRefreshRate = rate;
         }
     }
 }
